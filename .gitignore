@@ -1,0 +1,18 @@
+# Your projects (source texts, page images, translations) stay on your machine.
+# Only the small public-domain example is committed.
+projects/*
+!projects/example/
+projects/example/translation.json
+projects/example/requests.json
+projects/example/edits.jsonl
+projects/example/.edits_seen
+projects/example/output/
+projects/.active
+**/.lock
+**/.inbox/
+**/.tmp-*
+
+__pycache__/
+*.pyc
+.DS_Store
+.claude/settings.local.json

@@ -1,0 +1,29 @@
+{
+ "title": "על החירות (דוגמה)",
+ "source_title": "John Stuart Mill, On Liberty (1859) — public domain",
+ "source_lang": {
+  "code": "en",
+  "label": "English",
+  "dir": "ltr"
+ },
+ "target_lang": {
+  "code": "he",
+  "label": "עברית",
+  "dir": "rtl"
+ },
+ "unit": "עמ'",
+ "sections": [
+  {
+   "key": "s1",
+   "name": "Chapter I. Introductory",
+   "source_name": "Chapter I. Introductory",
+   "first": 1,
+   "last": 2
+  }
+ ],
+ "input": {
+  "type": "text",
+  "file": "source.md",
+  "per_page": 4
+ }
+}

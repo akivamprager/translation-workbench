@@ -1,0 +1,67 @@
+{
+ "title": "John Stuart Mill, On Liberty (1859) — public domain",
+ "sections": [
+  {
+   "key": "s1",
+   "name": "Chapter I. Introductory",
+   "source_name": "Chapter I. Introductory",
+   "first": 1,
+   "last": 2
+  }
+ ],
+ "pages": [
+  {
+   "page": 1,
+   "section": "s1",
+   "blocks": [
+    {
+     "id": "p1-1",
+     "kind": "heading",
+     "src": "Chapter I. Introductory",
+     "continues": false
+    },
+    {
+     "id": "p1-2",
+     "kind": "para",
+     "src": "The subject of this Essay is not the so-called Liberty of the Will, so unfortunately opposed to the misnamed doctrine of Philosophical Necessity; but Civil, or Social Liberty: the nature and limits of the power which can be legitimately exercised by society over the individual. A question seldom stated, and hardly ever discussed, in general terms, but which profoundly influences the practical controversies of the age by its latent presence, and is likely soon to make itself recognised as the vital question of the future.",
+     "continues": false,
+     "notes": []
+    },
+    {
+     "id": "p1-3",
+     "kind": "para",
+     "src": "The struggle between Liberty and Authority is the most conspicuous feature in the portions of history with which we are earliest familiar, particularly in that of Greece, Rome, and England. But in old times this contest was between subjects, or some classes of subjects, and the government. By liberty, was meant protection against the tyranny of the political rulers.",
+     "continues": false,
+     "notes": []
+    }
+   ]
+  },
+  {
+   "page": 2,
+   "section": "s1",
+   "blocks": [
+    {
+     "id": "p2-1",
+     "kind": "para",
+     "src": "The object of this Essay is to assert one very simple principle, as entitled to govern absolutely the dealings of society with the individual in the way of compulsion and control. That principle is, that the sole end for which mankind are warranted, individually or collectively, in interfering with the liberty of action of any of their number, is self-protection.[^1]",
+     "continues": false,
+     "notes": [
+      1
+     ]
+    },
+    {
+     "id": "p2-2",
+     "kind": "quote",
+     "src": "Over himself, over his own body and mind, the individual is sovereign.",
+     "continues": false,
+     "notes": []
+    }
+   ]
+  }
+ ],
+ "notes": {
+  "s1": {
+   "1": "A demo footnote, added to show how notes are imported."
+  }
+ }
+}

@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שולחן תרגום</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f6f4ef; --panel: #fffdf9; --ink: #1f1d1a; --muted: #6f6a61; --line: #e3ded4;
+  --accent: #2f5d8a; --accent-soft: #e6eef6;
+  --draft: #b7791f; --draft-soft: #fbf1df; --ok: #2f7a4f; --ok-soft: #e3f2e8;
+  --req: #8a3f8f; --req-soft: #f4e8f5; --warn: #b23b3b;
+  --tr-font: "Frank Ruhl Libre", "David", "Times New Roman", serif;
+  --src-font: "Source Serif 4", Georgia, serif;
+  --ui: "Heebo", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171614; --panel: #201f1c; --ink: #ebe7df; --muted: #a29c91; --line: #34322d;
+    --accent: #8ab4de; --accent-soft: #23303c;
+    --draft: #e0b05c; --draft-soft: #3a2f1c; --ok: #6fc293; --ok-soft: #1d3326;
+    --req: #d39ad7; --req-soft: #36243a; --warn: #e38080;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--ui); }
+button { font-family: var(--ui); }
+
+/* ---------- top bar ---------- */
+header {
+  position: sticky; top: 0; z-index: 20; background: var(--panel); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 14px; padding: 10px 20px; flex-wrap: wrap;
+}
+header h1 { font: 600 16px var(--ui); margin: 0; white-space: nowrap; }
+header h1 small { font-weight: 400; color: var(--muted); }
+.progress { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.bar { width: 140px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.nav { display: flex; align-items: center; gap: 6px; margin-inline-start: auto; }
+select, .btn {
+  font: 500 13px var(--ui); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; cursor: pointer;
+}
+.btn:hover, select:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.btn.ok { background: var(--ok); color: var(--panel); border-color: var(--ok); }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.sm { padding: 3px 8px; font-size: 12px; }
+
+/* ---------- banners ---------- */
+.banner {
+  margin: 14px 20px 0; padding: 10px 14px; border-radius: 8px; font-size: 14px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.banner.todo { background: var(--accent-soft); color: var(--accent); }
+.banner.req { background: var(--req-soft); color: var(--req); }
+.banner code {
+  font: 500 14px var(--ui); background: var(--panel); color: var(--ink); padding: 3px 8px;
+  border-radius: 5px; border: 1px solid var(--line);
+}
+
+/* ---------- layout ---------- */
+.layout { display: flex; gap: 20px; padding: 16px 20px 80px; align-items: flex-start; }
+main { flex: 1; min-width: 0; }
+aside.image {
+  width: 420px; flex-shrink: 0; position: sticky; top: 70px; max-height: calc(100vh - 90px);
+  overflow: auto; background: #fff; border: 1px solid var(--line); border-radius: 8px;
+}
+aside.image img { width: 100%; display: block; }
+.colhead { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 12px; color: var(--muted);
+  padding: 0 4px 6px; text-transform: uppercase; letter-spacing: .04em; }
+
+
+.row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: var(--panel);
+  border: 1px solid var(--line); border-inline-start: 4px solid var(--line);
+  border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+}
+.row.draft { border-inline-start-color: var(--draft); }
+.row.approved { border-inline-start-color: var(--ok); }
+.row.focus { box-shadow: 0 0 0 2px var(--accent-soft); }
+.row.kind-heading .src, .row.kind-heading textarea { font-weight: 700; font-size: 20px; }
+.row.kind-epigraph .src, .row.kind-epigraph textarea, .row.kind-quote .src, .row.kind-quote textarea { font-style: italic; }
+.row.kind-quote textarea, .row.kind-quote .src { padding-inline-start: 18px; }
+
+.src { text-align: start; font: 16px/1.65 var(--src-font); white-space: pre-wrap; }
+.src sup { color: var(--accent); cursor: pointer; font-size: 11px; font-family: var(--ui); }
+.src .cont { color: var(--muted); font-size: 12px; font-family: var(--ui); }
+.footnote { text-align: start; font: 13px/1.5 var(--src-font); color: var(--muted);
+  background: var(--bg); border-radius: 6px; padding: 6px 10px; margin-top: 8px; }
+
+.tr textarea {
+  width: 100%; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--ink);
+  font: 19px/1.75 var(--tr-font); resize: none; padding: 4px 6px; margin: -4px -6px; overflow: hidden; text-align: start;
+}
+.tr textarea:hover { border-color: var(--line); }
+.tr textarea:focus { outline: none; border-color: var(--accent); background: var(--bg); }
+.tr textarea::placeholder { color: var(--muted); font: italic 15px var(--ui); }
+
+.tools { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; font-size: 12px; }
+.chip { font: 500 11px var(--ui); padding: 2px 8px; border-radius: 10px; background: var(--line); color: var(--muted); }
+.chip.draft { background: var(--draft-soft); color: var(--draft); }
+.chip.approved { background: var(--ok-soft); color: var(--ok); }
+.chip.user { background: var(--accent-soft); color: var(--accent); }
+.chip.req { background: var(--req-soft); color: var(--req); }
+.saved { color: var(--muted); font-size: 11px; margin-inline-start: auto; }
+
+.alts { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.alt { margin-bottom: 10px; }
+.alt-target { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.alt-target b { font: 500 16px var(--tr-font); color: var(--ink); }
+.opt {
+  display: block; width: 100%; text-align: right; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 10px; margin-bottom: 5px; cursor: pointer; color: var(--ink);
+}
+.opt:hover { border-color: var(--accent); }
+.opt .t { font: 17px/1.5 var(--tr-font); }
+.opt .n { display: block; font: 12px/1.4 var(--ui); color: var(--muted); margin-top: 2px; }
+
+.form { margin-top: 10px; background: var(--bg); border-radius: 6px; padding: 10px; }
+.form .sel { font: 16px var(--tr-font); margin-bottom: 6px; }
+.form textarea { width: 100%; font: 14px var(--ui); border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 8px; background: var(--panel); color: var(--ink); min-height: 54px; resize: vertical; }
+.form .actions { display: flex; gap: 6px; margin-top: 6px; }
+
+.history { margin-top: 10px; font-size: 13px; }
+.ver { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; background: var(--bg); }
+.ver .meta { color: var(--muted); font-size: 11px; margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
+.ver .txt { font: 16px/1.6 var(--tr-font); }
+del { background: #f3d0d0; color: #7a2020; text-decoration: line-through; }
+ins { background: #cdebd6; color: #1d5a33; text-decoration: none; }
+@media (prefers-color-scheme: dark) { del { background: #4a2222; color: #f0b0b0; } ins { background: #1f3f2a; color: #a8e2bb; } }
+
+.pagefoot { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-top: 18px; }
+.pagefoot h3 { font: 600 14px var(--ui); margin: 0 0 8px; }
+.pagefoot .notes { font: 15px/1.7 var(--tr-font); white-space: pre-wrap; }
+.pagefoot .actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+
+.empty { text-align: center; color: var(--muted); padding: 60px 0; }
+
+/* decisions drawer */
+.drawer { position: fixed; inset-block: 0; inset-inline-end: 0; width: min(520px, 100vw); background: var(--panel);
+  border-inline-start: 1px solid var(--line); z-index: 30; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,.15); }
+.drawer header { position: static; }
+.drawer textarea { flex: 1; margin: 12px 16px 16px; border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+  font: 14px/1.7 var(--ui); background: var(--bg); color: var(--ink); resize: none; direction: rtl; }
+.drawer p { margin: 10px 16px 0; font-size: 13px; color: var(--muted); }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--panel);
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+kbd { font: 11px var(--ui); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; background: var(--bg); }
+
+
+/* claude bar */
+.claudebar { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--accent); background: var(--accent-soft);
+  border-radius: 7px; padding: 5px 10px; }
+.claudebar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
+.claudebar .prog { color: var(--muted); }
+@keyframes pulse { 50% { opacity: .25; } }
+.banner.done { background: var(--ok-soft); color: var(--ok); }
+.banner.fail { background: #f6dede; color: var(--warn); }
+.banner .msg { white-space: pre-wrap; flex: 1; min-width: 200px; }
+.banner .x { margin-inline-start: auto; }
+
+/* dialogs */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px; overflow: auto; }
+.modal { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; width: min(560px, 100%); padding: 20px 22px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.modal h2 { font: 600 18px var(--ui); margin: 0 0 4px; }
+.modal .sub { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.field { margin-bottom: 14px; }
+.field > label { display: block; font: 500 13px var(--ui); margin-bottom: 5px; }
+.field .hint { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+.field input[type=text], .field input[type=number], .field select, .field textarea {
+  width: 100%; font: 14px var(--ui); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 9px; }
+.field textarea { min-height: 140px; resize: vertical; font-family: var(--src-font); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; margin-bottom: 10px; }
+.seg button { border: 0; background: var(--panel); padding: 6px 14px; font: 500 13px var(--ui); color: var(--muted); cursor: pointer; }
+.seg button.on { background: var(--accent-soft); color: var(--accent); }
+.modal .actions { display: flex; gap: 8px; justify-content: flex-start; margin-top: 18px; }
+.err { color: var(--warn); font-size: 13px; margin-top: 10px; white-space: pre-wrap; }
+.drawer .tabs { display: flex; gap: 6px; margin: 12px 16px 0; }
+@media (max-width: 560px) { .cols, .cols3 { grid-template-columns: 1fr; } }
+
+@media (max-width: 1100px) { aside.image { width: 320px; } }
+@media (max-width: 800px) {
+  .row, .colhead { grid-template-columns: 1fr; }
+  .layout { flex-direction: column; padding: 12px 16px 60px; }
+  aside.image { width: 100%; position: static; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>שולחן תרגום <small id="projTitle"></small></h1>
+  <select id="projSel" title="החלפת טקסט" hidden></select>
+  <button class="btn" id="newBtn" title="הוספת טקסט חדש לתרגום">＋ טקסט חדש</button>
+  <div class="progress"><div class="bar" id="bar"></div><span id="progressText"></span></div>
+  <div class="claudebar" id="claudeBar" hidden></div>
+  <div class="nav">
+    <button class="btn" id="prevBtn" title="עמוד קודם">→ הקודם</button>
+    <select id="pageSel"></select>
+    <button class="btn" id="nextBtn" title="עמוד הבא">הבא ←</button>
+    <button class="btn" id="imgBtn" title="הצג את עמוד המקור כתמונה">תמונת עמוד</button>
+    <button class="btn" id="decBtn" title="הנחיות התרגום וההחלטות שClaude קורא לפני כל עמוד">הנחיות והחלטות</button>
+    <button class="btn" id="askBtn" title="בקשה חופשית לClaude על הטקסט הזה">שאל את Claude</button>
+    <button class="btn" id="setBtn" title="שם, שפות וטווח עמודים">הגדרות</button>
+    <button class="btn" id="exportBtn">ייצוא</button>
+  </div>
+</header>
+
+<div id="banners"></div>
+<div class="layout">
+  <main id="main"></main>
+  <aside class="image" id="imgPane" hidden><img id="pageImg" alt="עמוד המקור"></aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined && v !== false) el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) el.append(k.nodeType ? k : document.createTextNode(k));
+  return el;
+};
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('tw:' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('tw:' + k, JSON.stringify(v)); } catch {} },
+};
+
+let S = null;                 // server state
+let page = store.get('page', 1);
+let showImg = store.get('img', false);
+const ui = {};                // per-block transient UI: {form:'alt'|'redo'|null, hist:bool, sel:''}
+const pending = new Map();    // block id -> timer for debounced save
+let deferredRefresh = false;
+
+const STATUS_HE = { pending: 'לא תורגם', draft: 'טיוטה', approved: 'מאושר' };
+const KIND_HE = { heading: 'כותרת', epigraph: 'מוטו', para: 'פסקה', quote: 'ציטוט' };
+
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
+  if (!r.ok) { const t = await r.text(); let m = t; try { m = JSON.parse(t).error || t; } catch {} throw new Error(m); }
+  return r.json();
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800); }
+function copy(text, msg = 'הועתק') { navigator.clipboard.writeText(text).then(() => toast(msg)); }
+
+const C = () => S.config;
+const unit = () => C().unit || 'עמ\'';
+const pages = () => S.source.pages.filter(p => p.blocks.length);
+const rec = id => S.trans.blocks[id] || { tr: '', status: 'pending', history: [] };
+const status = id => (rec(id).tr ? (rec(id).status || 'draft') : 'pending');
+const openReqs = () => S.requests.filter(r => r.status === 'open');
+const sectionOf = key => S.source.sections.find(s => s.key === key);
+
+let LANGS = { en: 'English', he: 'עברית' };
+
+async function load() {
+  const r = await fetch('/api/state');
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    if (e.langs) LANGS = e.langs;
+    S = null;
+    $('#banners').replaceChildren();
+    $('#main').replaceChildren(h('div', { class: 'empty' },
+      h('p', {}, 'עוד אין טקסטים לתרגום.'),
+      h('button', { class: 'btn primary', onclick: openNewProject }, '＋ הוסיפו טקסט ראשון')));
+    return;
+  }
+  S = await r.json();
+  LANGS = S.langs || LANGS;
+  if (S.claude) { claude = S.claude; renderClaudeBar(); }
+  page = store.get('page:' + S.project, page);
+  if (!pages().length) {
+    renderHeader();
+    $('#banners').replaceChildren();
+    $('#main').replaceChildren(h('div', { class: 'empty' },
+      h('p', {}, 'בטקסט הזה עוד אין קטעים לתרגום — כנראה שהחילוץ מהקובץ לא הצליח.'),
+      h('p', {}, 'בדקו את טווח העמודים ב"הגדרות", או כתבו לClaude: ', h('code', {}, 'כוונן את החילוץ של הפרויקט'))));
+    return;
+  }
+  if (!pages().some(p => p.page === page)) page = pages()[0].page;
+  renderAll();
+}
+
+/* ---------------- render ---------------- */
+function renderAll() { renderHeader(); renderBanners(); renderPage(); }
+
+function renderHeader() {
+  document.title = `שולחן תרגום · ${C().title || S.project}`;
+  $('#projTitle').textContent = `· ${C().title || S.project}`;
+  const ps = $('#projSel');
+  ps.hidden = S.projects.length < 2;
+  ps.replaceChildren(...S.projects.map(x => h('option', { value: x.name, selected: x.name === S.project }, x.title)));
+  const all = S.source.pages.flatMap(p => p.blocks);
+  const n = all.length, ap = all.filter(b => status(b.id) === 'approved').length, dr = all.filter(b => status(b.id) === 'draft').length;
+  $('#bar').replaceChildren(h('i', { style: `width:${ap / n * 100}%;background:var(--ok)` }), h('i', { style: `width:${dr / n * 100}%;background:var(--draft)` }));
+  $('#progressText').textContent = `${ap} מאושרות · ${dr} טיוטות · מתוך ${n}`;
+
+  const sel = $('#pageSel'); sel.replaceChildren();
+  for (const s of S.source.sections) {
+    const g = h('optgroup', { label: s.name });
+    for (const p of pages().filter(p => p.section === s.key)) {
+      const sts = p.blocks.map(b => status(b.id));
+      const mark = sts.every(x => x === 'approved') ? ' ✓' : sts.some(x => x !== 'pending') ? ' •' : '';
+      g.append(h('option', { value: p.page, selected: p.page === page }, `עמ' ${p.page}${mark}`));
+    }
+    sel.append(g);
+  }
+  const ix = pages().findIndex(p => p.page === page);
+  $('#prevBtn').disabled = ix <= 0; $('#nextBtn').disabled = ix >= pages().length - 1;
+  $('#imgBtn').classList.toggle('on', showImg);
+  $('#imgPane').hidden = !showImg;
+  if (showImg) {
+    if (!$('#pageImg')) $('#imgPane').replaceChildren(h('img', { id: 'pageImg', alt: 'עמוד המקור', onerror: () => $('#imgPane').replaceChildren(h('div', { class: 'empty' }, 'אין תמונה לעמוד הזה')) }));
+    $('#pageImg').src = `/pages/p${page}.png`;
+  }
+}
+
+function renderBanners() {
+  const b = $('#banners'); b.replaceChildren();
+  const p = pages().find(p => p.page === page);
+  const untranslated = p.blocks.filter(x => !rec(x.id).tr).length;
+  const busy = claudeBusyWith('translate', page);
+  if (untranslated && busy) {
+    b.append(h('div', { class: 'banner todo' }, `Claude ${busy.label}… התרגום יופיע כאן מעצמו.`));
+  } else if (untranslated) {
+    const cmd = `תרגם עמוד ${page}`;
+    const ix = pages().findIndex(x => x.page === page);
+    const next3 = pages().slice(ix, ix + 3).map(x => x.page);
+    b.append(h('div', { class: 'banner todo' },
+      `בעמוד הזה ${untranslated} קטעים שעוד לא תורגמו.`,
+      claudeOn()
+        ? [h('button', { class: 'btn sm primary', onclick: () => runClaude({ kind: 'translate', pages: [page] }) }, 'תרגם עכשיו עם Claude'),
+           next3.length > 1 ? h('button', { class: 'btn sm', onclick: () => runClaude({ kind: 'translate', pages: next3 }) }, `תרגם ${next3.length} עמודים`) : null]
+        : ['כתבו לClaude:', h('code', {}, cmd), h('button', { class: 'btn sm', onclick: () => copy(cmd) }, 'העתק')]));
+  }
+  const reqs = openReqs();
+  if (reqs.length) {
+    const cmd = 'טפל בבקשות';
+    const pagesTxt = [...new Set(reqs.map(r => r.block.split('-')[0].slice(1)))].join(', ');
+    b.append(h('div', { class: 'banner req' },
+      `${reqs.length} בקשות פתוחות לClaude (${unit()} ${pagesTxt}).`,
+      claudeBusyWith('requests') ? 'Claude מטפל בהן…'
+        : claudeOn() ? h('button', { class: 'btn sm primary', onclick: () => runClaude({ kind: 'requests' }) }, 'שלח לClaude עכשיו')
+        : ['כתבו לClaude:', h('code', {}, cmd), h('button', { class: 'btn sm', onclick: () => copy(cmd) }, 'העתק')]));
+  }
+  for (const j of unseenResults()) {
+    b.append(h('div', { class: 'banner ' + (j.status === 'done' ? 'done' : 'fail') },
+      h('span', { class: 'msg' }, (j.status === 'done' ? 'Claude סיים: ' : 'Claude נכשל: ') + (j.result || '')),
+      h('button', { class: 'btn sm x', onclick: () => { seenJobs.add(j.id); store.set('seenJobs', [...seenJobs].slice(-50)); renderBanners(); } }, 'סגור')));
+  }
+}
+
+/* ---------------- Claude bridge ---------------- */
+let claude = { available: false, jobs: [] };
+const seenJobs = new Set(store.get('seenJobs', []));
+const claudeOn = () => claude.available;
+const activeJobs = () => claude.jobs.filter(j => j.project === S?.project && (j.status === 'running' || j.status === 'queued'));
+function claudeBusyWith(kind, pg) {
+  return activeJobs().find(j => j.task.kind === kind && (pg === undefined || (j.task.pages || []).includes(pg)));
+}
+function unseenResults() {
+  return claude.jobs.filter(j => j.project === S?.project && ['done', 'failed'].includes(j.status) && !seenJobs.has(j.id));
+}
+async function runClaude(task) {
+  try { await api('/api/claude/run', task); } catch (e) { return toast(e.message); }
+  await pollClaude(); renderBanners();
+}
+function renderClaudeBar() {
+  const bar = $('#claudeBar');
+  const jobs = activeJobs();
+  bar.hidden = !jobs.length;
+  if (!jobs.length) return;
+  const run = jobs.find(j => j.status === 'running') || jobs[0];
+  const queued = jobs.filter(j => j.status === 'queued').length;
+  bar.replaceChildren(h('span', { class: 'dot' }), `Claude ${run.label}`,
+    run.progress ? h('span', { class: 'prog' }, `· ${run.progress}`) : null,
+    queued ? h('span', { class: 'prog' }, `· עוד ${queued} בתור`) : null,
+    h('button', { class: 'btn sm', onclick: () => api('/api/claude/cancel', { id: run.id }).then(pollClaude) }, 'עצור'));
+}
+let lastJobSig = '';
+async function pollClaude(status) {
+  if (!status) { try { status = (await api('/api/version')).claude; } catch { return; } }
+  const before = new Map(claude.jobs.map(j => [j.id, j.status]));
+  claude = status || claude;
+  renderClaudeBar();
+  const sig = claude.jobs.map(j => j.id + j.status).join();
+  if (sig !== lastJobSig) {
+    lastJobSig = sig;
+    for (const j of claude.jobs) if (before.get(j.id) === 'running' && j.status === 'done') toast('Claude סיים');
+    if (S) renderBanners();
+  }
+}
+
+function enHTML(block) {
+  const sec = block.section;
+  const frag = document.createDocumentFragment();
+  const parts = block.src.split(/(\[\^\d+\])/);
+  for (const part of parts) {
+    const m = part.match(/^\[\^(\d+)\]$/);
+    if (m) frag.append(h('sup', { 'data-n': m[1], title: 'הצג הערה' }, m[1]));
+    else frag.append(part);
+  }
+  if (block.continues) frag.append(h('span', { class: 'cont' }, ' (continues on next page)'));
+  return frag;
+}
+
+function renderPage() {
+  const main = $('#main');
+  const focused = document.activeElement?.dataset?.block;
+  const caret = focused ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
+  main.replaceChildren();
+  const p = pages().find(p => p.page === page);
+  const sec = sectionOf(p.section);
+  main.append(h('div', { class: 'colhead' }, h('div', {}, `${C().target_lang.label} · ${sec.name}, ${unit()} ${p.page}`), h('div', { dir: C().source_lang.dir }, `${C().source_lang.label} · ${sec.source_name || sec.name}, ${p.page}`)));
+  for (const b of p.blocks) main.append(renderRow({ ...b, section: p.section }));
+  main.append(renderPageFoot(p));
+  for (const ta of main.querySelectorAll('textarea.hetext')) autosize(ta);
+  requestAnimationFrame(() => main.querySelectorAll('textarea.hetext').forEach(autosize));
+  if (focused) {
+    const ta = main.querySelector(`textarea[data-block="${focused}"]`);
+    if (ta) { ta.focus(); ta.setSelectionRange(...caret); }
+  }
+}
+
+function renderRow(b) {
+  const r = rec(b.id), st = status(b.id), u = (ui[b.id] ||= {});
+  const reqs = openReqs().filter(x => x.block === b.id);
+  const row = h('div', { class: `row ${st} kind-${b.kind}`, id: 'row-' + b.id });
+
+  // Hebrew side
+  const ta = h('textarea', {
+    class: 'hetext', 'data-block': b.id, rows: 1, spellcheck: 'true',
+    dir: C().target_lang.dir, lang: C().target_lang.code,
+    placeholder: 'עוד לא תורגם — אפשר לבקש מClaude או לכתוב כאן ידנית',
+    oninput: e => { autosize(e.target); scheduleSave(b.id, e.target.value); },
+    onfocus: () => row.classList.add('focus'),
+    onblur: () => { row.classList.remove('focus'); flush(b.id); if (deferredRefresh) setTimeout(refreshIfIdle, 50); },
+    onkeydown: e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); approve(b.id, true); } },
+  });
+  ta.value = r.tr || '';
+  const lastBy = r.by === 'user' ? h('span', { class: 'chip user' }, 'נערך ידנית') : null;
+
+  const tools = h('div', { class: 'tools' },
+    h('span', { class: `chip ${st}` }, STATUS_HE[st]), lastBy,
+    reqs.map(x => h('span', { class: 'chip req', title: x.comment || '' },
+      x.type === 'alternatives' ? `ממתין לחלופות: «${trim(x.selection, 24)}»` : 'ממתין לתרגום מחדש',
+      ' ', h('a', { href: '#', onclick: e => { e.preventDefault(); cancelReq(x.id); }, title: 'בטל בקשה' }, '×'))),
+    r.tr ? h('button', { class: 'btn sm ' + (st === 'approved' ? '' : 'ok'), onclick: () => approve(b.id), title: '⌘/Ctrl+Enter' },
+      st === 'approved' ? 'בטל אישור' : '✓ אשר') : null,
+    r.tr ? h('button', { class: 'btn sm', onmousedown: e => { u.sel = selectionOf(ta); }, onclick: () => openForm(b.id, 'alt'),
+      title: 'סמנו קטע בתרגום ובקשו מClaude חלופות' }, 'חלופות לקטע מסומן') : null,
+    h('button', { class: 'btn sm', onclick: () => openForm(b.id, 'redo') }, r.tr ? 'תרגום מחדש' : 'בקש תרגום'),
+    (r.history || []).length > 1 ? h('button', { class: 'btn sm' + (u.hist ? ' on' : ''), onclick: () => { u.hist = !u.hist; renderPage(); } },
+      `גרסאות (${r.history.length})`) : null,
+    h('span', { class: 'saved', id: 'saved-' + b.id }, ''),
+  );
+
+  const trSide = h('div', { class: 'tr' }, ta, tools);
+  if (u.form) trSide.append(renderForm(b, u));
+  if ((r.alternatives || []).length) trSide.append(renderAlts(b, r));
+  if (u.hist) trSide.append(renderHistory(b, r));
+
+  // source side
+  const en = h('div', { class: 'src', dir: C().source_lang.dir, lang: C().source_lang.code }, enHTML(b));
+  const enWrap = h('div', {}, h('div', { class: 'kindlabel' }), en);
+  en.addEventListener('click', e => {
+    const n = e.target.dataset?.n; if (!n) return;
+    const existing = enWrap.querySelector(`.footnote[data-n="${n}"]`);
+    if (existing) return existing.remove();
+    const txt = S.source.notes[b.section]?.[n] || '—';
+    enWrap.append(h('div', { class: 'footnote', 'data-n': n }, `${n}. ${txt}`));
+  });
+
+  row.append(trSide, enWrap);
+  return row;
+}
+
+function renderForm(b, u) {
+  const isAlt = u.form === 'alt';
+  const comment = h('textarea', { placeholder: isAlt ? 'הערה לClaude (לא חובה): מה מפריע בניסוח?' : 'מה צריך לשנות? (משלב, מונח, דיוק…)' });
+  const send = async () => {
+    if (isAlt && !u.sel) return toast('סמנו קודם קטע בטקסט העברי');
+    await api('/api/request', { type: isAlt ? 'alternatives' : 'retranslate', block: b.id, selection: isAlt ? u.sel : '', comment: comment.value.trim() });
+    u.form = null;
+    if (claudeOn()) { await api('/api/claude/run', { kind: 'requests' }); toast('נשלח לClaude'); }
+    else toast('הבקשה נשמרה — כתבו לClaude "טפל בבקשות"');
+    await load(); pollClaude();
+  };
+  setTimeout(() => comment.focus(), 0);
+  return h('div', { class: 'form' },
+    isAlt ? h('div', { class: 'sel' }, u.sel ? ['חלופות עבור: ', h('b', {}, `«${u.sel}»`)] : 'לא סומן קטע. סמנו מילים בטקסט העברי ולחצו שוב על "חלופות לקטע מסומן".')
+      : h('div', { class: 'sel' }, rec(b.id).tr ? 'בקשה לתרגם מחדש את הקטע כולו' : 'בקשה לתרגם את הקטע'),
+    comment,
+    h('div', { class: 'actions' }, h('button', { class: 'btn sm primary', onclick: send }, 'שלח לClaude'),
+      h('button', { class: 'btn sm', onclick: () => { u.form = null; renderPage(); } }, 'ביטול')));
+}
+
+function renderAlts(b, r) {
+  const box = h('div', { class: 'alts' });
+  r.alternatives.forEach((a, i) => {
+    const found = (r.tr || '').includes(a.target);
+    box.append(h('div', { class: 'alt' },
+      h('div', { class: 'alt-target' }, 'חלופות ל־', h('b', {}, `«${a.target}»`), found ? '' : ' (הנוסח הזה כבר לא מופיע בטקסט)', a.why ? ` — ${a.why}` : ''),
+      a.options.map(o => h('button', { class: 'opt', onclick: () => applyAlt(b.id, i, o.text) },
+        h('span', { class: 't' }, o.text), o.note ? h('span', { class: 'n' }, o.note) : null)),
+      h('button', { class: 'btn sm', onclick: () => dismissAlt(b.id, i) }, found ? 'השאר את הנוסח הקיים' : 'הסר')));
+  });
+  return box;
+}
+
+function renderHistory(b, r) {
+  const box = h('div', { class: 'history' });
+  const hist = r.history || [];
+  hist.slice().reverse().forEach((v, ri) => {
+    const i = hist.length - 1 - ri;
+    const prev = hist[i - 1];
+    box.append(h('div', { class: 'ver' },
+      h('div', { class: 'meta' }, `${v.by === 'claude' ? 'Claude' : 'ידני'} · ${v.at.replace('T', ' ').slice(0, 16)}`,
+        i < hist.length - 1 ? h('button', { class: 'btn sm', onclick: () => restore(b.id, v.tr) }, 'שחזר גרסה זו') : h('span', { class: 'chip' }, 'נוכחית')),
+      h('div', { class: 'txt' }, prev ? diff(prev.tr, v.tr) : v.tr)));
+  });
+  return box;
+}
+
+function renderPageFoot(p) {
+  const notes = S.trans.pages[String(p.page)]?.notes;
+  const ix = pages().findIndex(x => x.page === p.page);
+  const allApproved = p.blocks.every(b => status(b.id) === 'approved');
+  const anyText = p.blocks.some(b => rec(b.id).tr);
+  return h('div', { class: 'pagefoot' },
+    notes ? [h('h3', {}, 'התלבטויות והערות של Claude לעמוד'), h('div', { class: 'notes' }, notes)] : h('h3', {}, 'אין הערות לעמוד הזה'),
+    h('div', { class: 'actions' },
+      h('button', { class: 'btn', onclick: () => copy(pageText(p), 'תרגום העמוד הועתק') , disabled: !anyText }, 'העתק את העמוד'),
+      allApproved
+        ? h('button', { class: 'btn primary', disabled: ix >= pages().length - 1, onclick: () => goto(pages()[ix + 1].page) },
+            ix < pages().length - 1 ? 'העמוד מאושר · עבור לבא ←' : 'העמוד מאושר')
+        : h('button', { class: 'btn ok', disabled: !anyText, title: anyText ? '' : 'אין עדיין תרגום בעמוד הזה', onclick: () => approvePage(p) },
+            ix < pages().length - 1 ? 'אשר את כל העמוד ועבור לבא ←' : 'אשר את כל העמוד')));
+}
+
+/* ---------------- actions ---------------- */
+function scheduleSave(id, value) {
+  clearTimeout(pending.get(id));
+  $('#saved-' + id).textContent = '…';
+  pending.set(id, setTimeout(() => save(id, value), 700));
+}
+async function flush(id) {
+  if (!pending.has(id)) return;
+  clearTimeout(pending.get(id)); pending.delete(id);
+  const ta = document.querySelector(`textarea[data-block="${id}"]`);
+  if (ta) await save(id, ta.value);
+}
+async function save(id, value) {
+  pending.delete(id);
+  if ((rec(id).tr || '') === value) { const s = $('#saved-' + id); if (s) s.textContent = ''; return; }
+  const res = await api('/api/block', { id, text: value });
+  S.trans.blocks[id] = res.block; S.version = res.version;
+  const s = $('#saved-' + id); if (s) s.textContent = 'נשמר';
+  renderHeader();
+}
+async function approve(id, focusNext) {
+  await flush(id);
+  const st = status(id) === 'approved' ? 'draft' : 'approved';
+  await api('/api/status', { ids: [id], status: st });
+  await load();
+  if (focusNext && st === 'approved') {
+    const p = pages().find(p => p.page === page);
+    const i = p.blocks.findIndex(b => b.id === id);
+    const nxt = p.blocks[i + 1];
+    if (nxt) document.querySelector(`textarea[data-block="${nxt.id}"]`)?.focus();
+  }
+}
+async function approvePage(p) {
+  for (const b of p.blocks) await flush(b.id);
+  await api('/api/status', { ids: p.blocks.map(b => b.id), status: 'approved' });
+  const ix = pages().findIndex(x => x.page === p.page);
+  if (ix < pages().length - 1) page = pages()[ix + 1].page;
+  store.set('page:' + S.project, page); await load(); scrollTo(0, 0);
+}
+async function applyAlt(id, i, text) {
+  await flush(id);
+  const r = rec(id), a = r.alternatives[i];
+  if (!(r.tr || '').includes(a.target)) { copy(text, 'הנוסח המקורי לא נמצא — החלופה הועתקה ללוח'); return; }
+  await api('/api/block', { id, text: r.tr.replace(a.target, text) });
+  await api('/api/alt/dismiss', { id, index: i });
+  toast('החלופה הוחלה'); await load();
+}
+async function dismissAlt(id, i) { await api('/api/alt/dismiss', { id, index: i }); await load(); }
+async function restore(id, text) { await api('/api/block', { id, text }); toast('הגרסה שוחזרה'); await load(); }
+async function cancelReq(rid) { await api('/api/request/cancel', { id: rid }); await load(); }
+function openForm(id, kind) {
+  const u = (ui[id] ||= {});
+  if (kind === 'alt') { const ta = document.querySelector(`textarea[data-block="${id}"]`); u.sel = u.sel || selectionOf(ta); }
+  u.form = u.form === kind ? null : kind; renderPage();
+}
+function selectionOf(ta) { return ta ? ta.value.slice(ta.selectionStart, ta.selectionEnd).trim() : ''; }
+function goto(n) { page = n; store.set('page:' + S.project, page); for (const k in ui) ui[k] = {}; renderAll(); scrollTo(0, 0); }
+
+function pageText(p) { return p.blocks.map(b => rec(b.id).tr).filter(Boolean).join('\n\n'); }
+function exportAll() {
+  const out = [];
+  for (const s of S.source.sections) {
+    const blocks = S.source.pages.filter(p => p.section === s.key).flatMap(p => p.blocks).map(b => rec(b.id).tr).filter(Boolean);
+    if (blocks.length) out.push(blocks.join('\n\n'));
+  }
+  const text = out.join('\n\n\n');
+  const a = h('a', { href: URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' })), download: `${S.project}-translation.txt` });
+  document.body.append(a); a.click(); a.remove();
+  copy(text, 'כל התרגום הועתק והורד כקובץ');
+}
+
+/* decisions drawer */
+function openDecisions() {
+  if ($('.drawer')) return $('.drawer').remove();
+  const docs = {
+    decisions: { label: 'החלטות ומונחים', api: '/api/decisions', key: 'decisions',
+      help: 'Claude קורא את הקובץ הזה לפני כל עמוד. כל החלטה שתכתבו כאן (מונח, משלב, ניסוח) תיושם מכאן והלאה. Claude גם מוסיף לכאן לקחים מהתיקונים הידניים שלכם.' },
+    style: { label: 'הנחיות תרגום', api: '/api/style', key: 'style',
+      help: 'ההנחיות הכלליות לטקסט הזה: תפקיד, קהל יעד, משלב, כללי עבודה. כל טקסט יכול לקבל הנחיות משלו.' },
+  };
+  let cur = 'decisions';
+  const ta = h('textarea', { dir: 'auto' });
+  const help = h('p', {});
+  const tabs = h('div', { class: 'tabs' });
+  const show = k => {
+    cur = k; ta.value = S[docs[k].key] || ''; help.textContent = docs[k].help;
+    tabs.replaceChildren(...Object.entries(docs).map(([key, d]) =>
+      h('button', { class: 'btn sm' + (key === cur ? ' on' : ''), onclick: () => show(key) }, d.label)));
+  };
+  const d = h('div', { class: 'drawer' },
+    h('header', {}, h('h1', {}, 'הנחיות והחלטות'),
+      h('div', { class: 'nav' },
+        h('button', { class: 'btn primary', onclick: async () => { await api(docs[cur].api, { text: ta.value }); S[docs[cur].key] = ta.value; toast('נשמר'); } }, 'שמור'),
+        h('button', { class: 'btn', onclick: () => d.remove() }, 'סגור'))),
+    tabs, help, ta);
+  show(cur);
+  document.body.append(d);
+}
+
+/* ---------------- dialogs: new text, settings ---------------- */
+function modal(title, sub, body, onOk, okLabel) {
+  const err = h('div', { class: 'err' });
+  const ok = h('button', { class: 'btn primary' }, okLabel);
+  const bg = h('div', { class: 'modal-bg', onclick: e => { if (e.target === bg) bg.remove(); } },
+    h('div', { class: 'modal' }, h('h2', {}, title), sub ? h('p', { class: 'sub' }, sub) : null, body, err,
+      h('div', { class: 'actions' }, ok, h('button', { class: 'btn', onclick: () => bg.remove() }, 'ביטול'))));
+  ok.addEventListener('click', async () => {
+    err.textContent = ''; ok.disabled = true; const label = ok.textContent; ok.textContent = 'רגע…';
+    try { await onOk(); bg.remove(); } catch (e) { err.textContent = e.message; } finally { ok.disabled = false; ok.textContent = label; }
+  });
+  document.body.append(bg);
+  setTimeout(() => bg.querySelector('input, textarea')?.focus(), 0);
+  return bg;
+}
+function field(label, input, hint) { return h('div', { class: 'field' }, h('label', {}, label), input, hint ? h('div', { class: 'hint' }, hint) : null); }
+function langPicker(value) {
+  const sel = h('select', {}, Object.entries(LANGS).map(([c, l]) => h('option', { value: c, selected: c === value }, `${l} (${c})`)),
+    h('option', { value: '__other', selected: !(value in LANGS) }, 'אחרת…'));
+  const other = h('input', { type: 'text', placeholder: 'קוד שפה, למשל sv או tr', value: value in LANGS ? '' : value, hidden: value in LANGS });
+  sel.addEventListener('change', () => { other.hidden = sel.value !== '__other'; if (!other.hidden) other.focus(); });
+  const wrap = h('div', {}, sel, other);
+  wrap.getValue = () => sel.value === '__other' ? other.value.trim() : sel.value;
+  return wrap;
+}
+const num = (v, attrs = {}) => h('input', { type: 'number', min: 0, value: v ?? '', ...attrs });
+
+function openNewProject() {
+  let mode = 'file', file = null;
+  const title = h('input', { type: 'text', placeholder: 'למשל: מיל, על החירות — פרק 2' });
+  const name = h('input', { type: 'text', placeholder: 'on-liberty-ch2', dir: 'ltr' });
+  const src = langPicker(S?.config?.source_lang?.code || 'en'), tgt = langPicker(S?.config?.target_lang?.code || 'he');
+  const fileIn = h('input', { type: 'file', accept: '.pdf,.txt,.md,.markdown' });
+  const paste = h('textarea', { placeholder: 'הדביקו כאן את טקסט המקור. שורה ריקה בין פסקאות; # כותרת פרק; > ציטוט.', dir: 'auto' });
+  const first = num(1, { min: 1 }), last = num(10, { min: 1 }), offset = num(0), perPage = num(4, { min: 1 });
+  const pdfBox = h('div', { hidden: true },
+    h('div', { class: 'cols3' }, field('מעמוד', first), field('עד עמוד', last), field('הפרש עמודים', offset)),
+    h('div', { class: 'hint' }, 'מספרי העמודים כפי שהם מודפסים בספר. "הפרש עמודים" = כמה עמודים יש ב־PDF לפני עמוד 1 של הספר (עמוד ספר = עמוד PDF פחות ההפרש). ספרים שונים מסודרים אחרת — אחרי היצירה כדאי לבקש מClaude לכוונן את החילוץ.'));
+  const textBox = h('div', {}, field('קטעים בכל "עמוד"', perPage, 'לטקסט רציף בלי עמודים: כמה פסקאות להציג יחד בכל שלב. אפשר גם לסמן עמודים בעצמכם בשורה כמו  === page 12 ==='));
+  const fileField = field('קובץ', fileIn, 'PDF, או קובץ טקסט / Markdown');
+  const pasteField = field('טקסט המקור', paste);
+  pasteField.hidden = true;
+  fileIn.addEventListener('change', () => {
+    file = fileIn.files[0] || null;
+    const isPdf = file && /\.pdf$/i.test(file.name);
+    pdfBox.hidden = !isPdf; textBox.hidden = isPdf;
+    if (file && !title.value) title.value = file.name.replace(/\.[^.]+$/, '');
+  });
+  const seg = h('div', { class: 'seg' });
+  const setMode = m => {
+    mode = m; fileField.hidden = m !== 'file'; pasteField.hidden = m !== 'paste';
+    pdfBox.hidden = !(m === 'file' && file && /\.pdf$/i.test(file.name)); textBox.hidden = !pdfBox.hidden ? true : false;
+    seg.replaceChildren(h('button', { class: m === 'file' ? 'on' : '', onclick: () => setMode('file') }, 'העלאת קובץ'),
+                        h('button', { class: m === 'paste' ? 'on' : '', onclick: () => setMode('paste') }, 'הדבקת טקסט'));
+  };
+  setMode('file');
+  const body = h('div', {},
+    field('שם הטקסט', title),
+    h('div', { class: 'cols' }, field('שפת המקור', src), field('שפת התרגום', tgt)),
+    seg, fileField, pasteField, pdfBox, textBox,
+    field('שם קצר לתיקייה (לא חובה)', name, 'אותיות לטיניות. אם תשאירו ריק, ייווצר מהשם.'));
+  modal('טקסט חדש לתרגום', 'כל טקסט נשמר בתיקייה משלו, עם הנחיות, החלטות ותרגום נפרדים.', body, async () => {
+    if (!title.value.trim()) throw new Error('חסר שם לטקסט');
+    const payload = { title: title.value.trim(), name: name.value.trim(), src: src.getValue(), tgt: tgt.getValue(),
+      first: +first.value, last: +last.value, page_offset: +offset.value, per_page: +perPage.value };
+    if (mode === 'paste') {
+      if (!paste.value.trim()) throw new Error('הדביקו טקסט');
+      payload.text = paste.value;
+    } else {
+      if (!file) throw new Error('בחרו קובץ');
+      payload.filename = file.name;
+      payload.data = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.onerror = rej; fr.readAsDataURL(file); });
+    }
+    const res = await api('/api/projects/new', payload);
+    for (const k in ui) delete ui[k];
+    await load(); scrollTo(0, 0);
+    toast(res.message.includes('failed') ? 'הטקסט נוצר, אבל החילוץ נכשל — ראו הגדרות' : 'הטקסט נוסף');
+  }, 'צור');
+}
+
+function openAsk() {
+  if (!S) return;
+  if (!claudeOn()) return toast('Claude Code לא נמצא במחשב — אפשר לכתוב לו ישירות בצ׳אט');
+  const ta = h('textarea', { placeholder: 'למשל: החלף "אבל" ב"אך" בכל הטקסט · אחד את התעתיק של שמות צרפתיים · תרגם שוב את עמוד 3 במשלב גבוה יותר', dir: 'auto' });
+  modal('שאל את Claude', `הבקשה תישלח לClaude עם כל ההקשר של "${C().title}". שינויים שיעשה יופיעו כאן מעצמם, והתשובה תוצג בראש העמוד.`,
+    field('הבקשה', ta), async () => {
+      if (!ta.value.trim()) throw new Error('כתבו בקשה');
+      await api('/api/claude/run', { kind: 'message', text: ta.value });
+      await pollClaude(); toast('נשלח לClaude');
+    }, 'שלח');
+}
+
+function openSettings() {
+  if (!S) return openNewProject();
+  const c = C(), inp = c.input || {};
+  const title = h('input', { type: 'text', value: c.title || '' });
+  const src = langPicker(c.source_lang.code), tgt = langPicker(c.target_lang.code);
+  const isPdf = inp.type === 'pdf';
+  const secs = c.sections || [];
+  const first = num(secs[0]?.first, { min: 1 }), last = num(secs[secs.length - 1]?.last, { min: 1 }), offset = num(inp.page_offset);
+  const perPage = num(inp.per_page, { min: 1 });
+  const started = Object.values(S.trans.blocks).some(b => b.tr);
+  const body = h('div', {},
+    field('שם הטקסט', title),
+    h('div', { class: 'cols' }, field('שפת המקור', src), field('שפת התרגום', tgt)),
+    isPdf ? h('div', {}, h('div', { class: 'cols3' }, field('מעמוד', first), field('עד עמוד', last), field('הפרש עמודים', offset)),
+              h('div', { class: 'hint' }, secs.length > 1 ? `לטקסט הזה ${secs.length} חלקים; כאן משנים רק את תחילת הראשון וסוף האחרון.` : ''))
+          : field('קטעים בכל "עמוד"', perPage),
+    started ? h('div', { class: 'hint', style: 'color:var(--warn)' }, 'שימו לב: התרגום כבר התחיל. הרחבת הטווח בסוף בטוחה, אבל שינוי תחילת הטווח, ההפרש או מספר הקטעים בעמוד עלול לשבש את ההתאמה בין המקור לתרגום.') : null,
+    h('div', { class: 'hint' }, `תיקייה: projects/${S.project}`));
+  modal('הגדרות הטקסט', null, body, async () => {
+    const res = await api('/api/settings', { title: title.value, src: src.getValue(), tgt: tgt.getValue(),
+      ...(isPdf ? { first: +first.value, last: +last.value, page_offset: offset.value } : { per_page: +perPage.value }) });
+    await load(); toast(res.message === 'saved' ? 'נשמר' : 'נשמר והטקסט חולץ מחדש');
+  }, 'שמור');
+}
+
+/* ---------------- helpers ---------------- */
+function autosize(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+function trim(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
+function diff(a, b) {
+  const A = a.split(/(\s+)/), B = b.split(/(\s+)/);
+  const n = A.length, m = B.length;
+  if (n * m > 400000) return b;
+  const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const frag = document.createDocumentFragment(); let i = 0, j = 0;
+  while (i < n || j < m) {
+    if (i < n && j < m && A[i] === B[j]) { frag.append(A[i]); i++; j++; }
+    else if (j < m && (i >= n || L[i][j + 1] >= L[i + 1][j])) { frag.append(h('ins', {}, B[j])); j++; }
+    else { frag.append(h('del', {}, A[i])); i++; }
+  }
+  return frag;
+}
+
+/* live refresh when Claude writes new translations */
+async function poll() {
+  try {
+    const v = await api('/api/version');
+    pollClaude(v.claude);
+    if (S && v.version !== S.version) refreshIfIdle();
+  } catch {}
+  setTimeout(poll, 2000);
+}
+async function refreshIfIdle() {
+  const a = document.activeElement;
+  if ((a && a.tagName === 'TEXTAREA' && a.classList.contains('hetext')) || pending.size || $('.form textarea:focus')) { deferredRefresh = true; return; }
+  deferredRefresh = false;
+  S = await api('/api/state'); renderAll();
+}
+
+$('#pageSel').addEventListener('change', e => goto(+e.target.value));
+$('#prevBtn').addEventListener('click', () => { const ix = pages().findIndex(p => p.page === page); if (ix > 0) goto(pages()[ix - 1].page); });
+$('#nextBtn').addEventListener('click', () => { const ix = pages().findIndex(p => p.page === page); if (ix < pages().length - 1) goto(pages()[ix + 1].page); });
+$('#imgBtn').addEventListener('click', () => { showImg = !showImg; store.set('img', showImg); renderHeader(); });
+$('#decBtn').addEventListener('click', openDecisions);
+$('#newBtn').addEventListener('click', openNewProject);
+$('#setBtn').addEventListener('click', openSettings);
+$('#askBtn').addEventListener('click', openAsk);
+$('#projSel').addEventListener('change', async e => { await api('/api/use', { project: e.target.value }); for (const k in ui) delete ui[k]; await load(); scrollTo(0, 0); });
+$('#pageImg').addEventListener('error', () => { $('#imgPane').replaceChildren(h('div', { class: 'empty' }, 'אין תמונה לעמוד הזה')); });
+$('#exportBtn').addEventListener('click', exportAll);
+window.addEventListener('beforeunload', e => { if (pending.size) { e.preventDefault(); } });
+
+const resizeAll = () => document.querySelectorAll('textarea.hetext').forEach(autosize);
+window.addEventListener('resize', resizeAll);
+document.fonts?.ready.then(resizeAll);
+load().then(() => { requestAnimationFrame(resizeAll); poll(); });
+</script>
+</body>
+</html>
